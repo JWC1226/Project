@@ -18,34 +18,45 @@ public class UserController {
         loadUsers();
     }
 //
-    //[내부 메서드] 프로그램 시작 시 3개의 파일에서 데이터를 읽어와 userList에 세팅
+    //[userList] 파일 3개에 각각의 값을 저장, 하나의 배열로 연결하여, 등록된 유저의 경우 id 를 소실하였어도 비밀번호가 맞으면 로그인이 허용됨
     private void loadUsers() {
         userList.clear();
-        try (BufferedReader brId = new BufferedReader(new FileReader("id.txt"));
-             BufferedReader brPw = new BufferedReader(new FileReader("pw.txt"));
-             BufferedReader brName = new BufferedReader(new FileReader("name.txt"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader("users.txt"))) {
+            String line;
 
-            String idLine, pwLine, nameLine;
-            while ((idLine = brId.readLine()) != null && 
-                   (pwLine = brPw.readLine()) != null && 
-                   (nameLine = brName.readLine()) != null) {
-                userList.add(new User(idLine, pwLine, nameLine));
+            // 파일에서 한 줄씩 읽어옵니다. (예: "a,b123,cCc")
+            while ((line = br.readLine()) != null) {
+
+                // 쉼표(,)를 기준으로 문자열을 잘라서 배열에 넣습니다.
+                // data[0] = "a", data[1] = "b123", data[2] = "cCc"
+                String[] inputData = line.split(",");
+
+                // 데이터가 정상적으로 3개(id, password, name) 존재하는 경우에만 객체 생성
+                if (inputData.length == 3) {
+                    String inputId = inputData[0];
+                    String inputPw = inputData[1];
+                    String inputName = inputData[2];
+
+                    userList.add(new User(inputId, inputPw, inputName));
+                }
             }
         } catch (IOException e) {
-            //최초 실행 시 파일이 없을 수 있으므로 예외 무시 (가입 시 파일 생성)
+            // 최초 실행 시 파일이 없을 수 있으므로 예외 무시 (가입 시 파일 생성)
         }
     }
 
     //[내부 메서드] 리스트에 있는 모든 유저 정보를 파일에 덮어쓰기 (비번 변경, 탈퇴 시 사용)
     private void saveAllUsers() {
-        try (BufferedWriter bwId = new BufferedWriter(new FileWriter("id.txt"));
-             BufferedWriter bwPw = new BufferedWriter(new FileWriter("pw.txt"));
-             BufferedWriter bwName = new BufferedWriter(new FileWriter("name.txt"))) {
+    	// 덮어쓰기
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("users.txt"))) {
 
             for (User user : userList) {
-                bwId.write(user.getId()); bwId.newLine();
-                bwPw.write(user.getPassword()); bwPw.newLine();
-                bwName.write(user.getName()); bwName.newLine();
+                // 메모리(userList)에 있는 각 유저의 정보를 쉼표(,)로 연결하여 한 줄로 만듭니다.
+                String lineToSave = user.getId() + "," + user.getPassword() + "," + user.getName();
+                
+                // 파일에 기록하고 줄바꿈을 합니다.
+                bw.write(lineToSave);
+                bw.newLine();
             }
         } catch (IOException e) {
             System.out.println("[오류] 파일을 업데이트하는 중 문제가 발생했습니다: " + e.getMessage());
@@ -64,16 +75,16 @@ public class UserController {
 //  [1-2] 회원가입: 새로운 유저 데이터 리스트 및 파일에 추가 (C)
     public void signUp(String id, String pw, String name) {
         User newUser = new User(id, pw, name);
-        userList.add(newUser); // 리스트에 추가
+        userList.add(newUser); // 메모리 리스트에 추가
 
-        // 파일에는 누적 저장 (true)
-        try (BufferedWriter bwId = new BufferedWriter(new FileWriter("id.txt", true));
-             BufferedWriter bwPw = new BufferedWriter(new FileWriter("pw.txt", true));
-             BufferedWriter bwName = new BufferedWriter(new FileWriter("name.txt", true))) {
+        // 파일에는 단일 파일(users.txt)에 누적 저장 (true)
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("users.txt", true))) {
 
-            bwId.write(newUser.getId()); bwId.newLine();
-            bwPw.write(newUser.getPassword()); bwPw.newLine();
-            bwName.write(newUser.getName()); bwName.newLine();
+            // ID, 비밀번호, 이름을 쉼표(,)로 연결하여 하나의 문자열로 만듭니다.
+            String lineToSave = newUser.getId() + "," + newUser.getPassword() + "," + newUser.getName();
+
+            bw.write(lineToSave);  // 쉼표로 연결된 한 줄의 데이터를 파일에 씁니다.
+            bw.newLine();          // 다음 사람의 데이터를 위해 줄바꿈을 추가합니다.
 
             System.out.println("회원가입이 완료되었습니다!");
         } catch (IOException e) {

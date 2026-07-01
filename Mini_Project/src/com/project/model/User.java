@@ -1,4 +1,4 @@
-package com.project.model;
+package com.project.model;            //완성형
 
 public class User {
     private String id;

@@ -1,4 +1,4 @@
-package com.project.view;
+package com.project.view;            //완성형
 
 import java.util.Scanner;
 import com.project.controller.UserController;

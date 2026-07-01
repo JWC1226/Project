@@ -1,4 +1,4 @@
-package com.project.main;
+package com.project.main;		//완성형
 
 import com.project.view.MainMenuSystem;
 
